@@ -97,35 +97,35 @@ public class EmailKontaktDao {
 		}
 
 	}
-	
+
 	public static int getNextId() {
-        try {
-            Statement s = getConn(defaultConnType).createStatement();
+		try {
+			Statement s = getConn(defaultConnType).createStatement();
 
-            String sql = "SELECT MIN(t1.ID + 1) AS nextID "
-                    + "FROM " + DBNAME + " t1 "
-                    + "LEFT JOIN " + DBNAME + " t2 ON t1.ID + 1 = t2.ID "
-                    + "WHERE t2.ID IS NULL";
+			String sql = "SELECT MIN(t1.ID + 1) AS nextID "
+					+ "FROM " + DBNAME + " t1 "
+					+ "LEFT JOIN " + DBNAME + " t2 ON t1.ID + 1 = t2.ID "
+					+ "WHERE t2.ID IS NULL";
 
-            ResultSet rs = s.executeQuery(sql);
-            int id = rs.getInt("nextID");
+			ResultSet rs = s.executeQuery(sql);
+			int id = rs.getInt("nextID");
 
-            if(id == 0) {
-            	id = 1;
-            }
-            
-            s.close();
-            return id;
+			if(id == 0) {
+				id = 1;
+			}
 
-        } catch (SQLException e) {
-            e.printStackTrace();
+			s.close();
+			return id;
 
-        }
+		} catch (SQLException e) {
+			e.printStackTrace();
 
-        return 1;
+		}
 
-    }
-	
+		return 1;
+
+	}
+
 	public static int insert(EmailKontakt contact) {
 		Connection conn = getConn(defaultConnType);
 		String sql = "INSERT INTO " +DBNAME +" (id, vorname, nachname, email) VALUES(?, ?, ?, ?)";
@@ -139,16 +139,16 @@ public class EmailKontaktDao {
 			s.executeUpdate();
 
 			System.out.println("[MSG] [DAO] Added row in " +defaultConnType);
-			
-	        try (ResultSet generatedKeys = s.getGeneratedKeys()) {
-	            if (generatedKeys.next()) {
-	                return generatedKeys.getInt(1);
-	            
-	            } else {
-	                throw new SQLException("Creating user failed, no ID obtained.");
-	            }
-	            
-	        }
+
+			try (ResultSet generatedKeys = s.getGeneratedKeys()) {
+				if (generatedKeys.next()) {
+					return generatedKeys.getInt(1);
+
+				} else {
+					throw new SQLException("Creating user failed, no ID obtained.");
+				}
+
+			}
 
 
 		} catch (SQLException e) {
@@ -164,7 +164,7 @@ public class EmailKontaktDao {
 			}
 
 		}
-		
+
 		return 0;
 
 	}
@@ -240,13 +240,13 @@ public class EmailKontaktDao {
 			if(contact.getId() == first().getId()) {
 				return null;
 			}
-			
+
 		} catch (NullPointerException e1) {
 			System.out.println("[ERR] [DAO] No data found!");
 			JFrameEmailverwaltung.clear();
 			return null;
 		}
-	
+
 		int id = contact.getId();
 		Connection conn = getConn(defaultConnType);
 		String sql = "SELECT * FROM " +DBNAME +" WHERE ID<? ORDER BY ID DESC";
@@ -297,7 +297,7 @@ public class EmailKontaktDao {
 			contact.setId(rs.getInt("id"));
 
 		} catch (SQLException e) {
-			
+
 
 		} finally {
 			try {
@@ -360,9 +360,9 @@ public class EmailKontaktDao {
 	public static Object[][] getTableData() {
 		if(getDataCount() == 0) {
 			return new Object[0][4];
-	
+
 		}
-		
+
 		Object[][] data = new Object[getDataCount()][getColumnNames().length];
 
 		Connection conn = getConn(defaultConnType);
@@ -438,66 +438,90 @@ public class EmailKontaktDao {
 		return count;
 
 	}
-	
+
 	public static Object[][] select(String id, String firstName, String lastName, String email) {
 		Connection conn = getConn(defaultConnType);
-		String sql = "SELECT * FROM " +DBNAME +" WHERE ID=? OR VORNAME=? OR NACHNAME=? OR EMAIL=?";
+		StringBuilder mainStr = new StringBuilder();
+		StringBuilder str = new StringBuilder();
+		mainStr.append("SELECT * FROM " +DBNAME);
+		ArrayList<String> arrlist = new ArrayList<String>();
+
+		boolean bId = false;
+		boolean bFirstName = false;
+		boolean bLastName = false;
+		boolean bEmail = false;
+
 		Object[][] newData = null;
 		ArrayList<Object> objList = new ArrayList<Object>();
-		
+
+		if(!id.equals("")) {
+			str.append("ID=?");
+			bId = true;
+			arrlist.add(id);
+
+		} if(!firstName.equals("")) {
+			if(bId) {
+				str.append(" AND ");
+
+			}
+			str.append("vorname=?");
+			bFirstName = true;
+			arrlist.add(firstName);
+
+		} if(!lastName.equals("")) {
+			if(bFirstName || bId) {
+				str.append(" AND ");
+
+			}
+			str.append("nachname=?");
+			bLastName = true;
+			arrlist.add(lastName);
+
+		} if(!email.equals("")) {
+			if(bFirstName || bId || bLastName) {
+				str.append(" AND ");
+
+			}
+			str.append("email=?");
+			bEmail = true;
+			arrlist.add(email);
+
+		}
+
+		if(bFirstName || bId || bLastName || bEmail) {
+			mainStr.append(" WHERE " +str.toString());
+		}
+
+		String sql = mainStr.toString();
+
+		System.out.println(sql);
+
 		try {
 			PreparedStatement ps = conn.prepareStatement(sql);
-			
-			if(id.equals("")) {
-				ps.setString(1, "*");
-				
-			} else {
-				ps.setString(1, id);
-				
-			}
-			
-			if(firstName.equals("")) {
-				ps.setString(2, "*");
-				
-			} else {
-				ps.setString(2, firstName);
-				
-			}
-			
-			if(id.equals("")) {
-				ps.setString(3, "*");
-				
-			} else {
-				ps.setString(3, lastName);
-				
-			}
-			
-			if(id.equals("")) {
-				ps.setString(4, "*");
-				
-			} else {
-				ps.setString(4, email);
-				
+
+			for(int i = 0; i < arrlist.size(); i++) {
+				ps.setString((i+1), arrlist.get(i));
 			}
 
 			ResultSet rs = ps.executeQuery();
 			if(defaultConnType.equals("AS400")) {
 				rs.next();
 			}
-			
+
+
 			while(rs.next()) {
 				Object[] obj = {rs.getInt("id"), rs.getString("vorname"), rs.getString("nachname"), rs.getString("email")};
 				objList.add(obj);
-			
+
 			}
-			
+
 			newData = new Object[objList.size()][4];
-			
+
 			for(int i = 0; i < newData.length; i++) {
 				newData[i] = (Object[]) objList.get(i);
-				
+
 			}
-			
+
 
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -536,7 +560,7 @@ public class EmailKontaktDao {
 		} catch (SQLException e) {
 			if(id > 0) {
 				JOptionPane.showMessageDialog(null, "Die ID " +id +" ist nicht vergeben.");
-				
+
 			}
 
 		} finally {
@@ -585,7 +609,7 @@ public class EmailKontaktDao {
 				if(!folder.exists()) {
 					folder.mkdir();
 				}
-				
+
 				Class.forName("org.sqlite.JDBC");
 				conn = DriverManager.getConnection(PATH);
 				s = conn.createStatement();
