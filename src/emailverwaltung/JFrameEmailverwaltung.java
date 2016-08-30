@@ -1,13 +1,13 @@
 package emailverwaltung;
 
+import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
@@ -15,11 +15,15 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
@@ -50,9 +54,12 @@ public class JFrameEmailverwaltung extends JFrame {
 	private JTable tableData;
 	private JScrollPane scrollPane;
 	private JComboBox<Object> comboBoxDatabase;
-	private TableModel model = new TableModel();
+	private TableModel model = new TableModel(EmailKontaktDao.getTableData());
 	private boolean cancel = false; 
-	private EmailKontakt last = null;
+	private JPopupMenu popupMenu;
+	private JMenuItem itemNew;
+	private JMenuItem itemEdit;
+	private JMenuItem itemDelete;
 
 	/**
 	 * Launch the application.
@@ -82,6 +89,13 @@ public class JFrameEmailverwaltung extends JFrame {
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			
+		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+				| UnsupportedLookAndFeelException e2) {
+			e2.printStackTrace();
+		}
 
 		labelId = new JLabel("ID:");
 		labelId.setBounds(10, 11, 100, 20);
@@ -200,6 +214,7 @@ public class JFrameEmailverwaltung extends JFrame {
 				} catch (NumberFormatException e1) {}
 				fillFields(contact);
 				checkStatus(); 
+				selectInTable(guiToContact());
 
 			}
 
@@ -216,6 +231,7 @@ public class JFrameEmailverwaltung extends JFrame {
 				EmailKontakt contact = EmailKontaktDao.first();
 				fillFields(contact);
 				checkStatus();
+				selectInTable(guiToContact());
 
 			}
 
@@ -232,7 +248,8 @@ public class JFrameEmailverwaltung extends JFrame {
 				setEditablefalse();
 				EmailKontakt contact = EmailKontaktDao.previous(guiToContact());
 				fillFields(contact);
-				checkStatus(); 
+				checkStatus();
+				selectInTable(guiToContact());
 
 			}
 
@@ -245,29 +262,8 @@ public class JFrameEmailverwaltung extends JFrame {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if(!newClicked) {
-					clear();
-					setEditableNew();
-					buttonNew.setText("Save");
-					disableButtonsExcept(buttonNew);
-					buttonNew.setEnabled(false);
-					cancel = true;
-
-				} else {
-					buttonNew.setEnabled(true);
-					buttonNew.setText("Neu");
-					setEditablefalse();
-					String id = String.valueOf(EmailKontaktDao.insert(guiToContact()));
-					textFieldId.setText(id);
-					updateTableModel();
-					enableButtons();
-					checkStatus();
-					cancel = false;
-
-				}
-
-				newClicked = !newClicked;
-
+				newEntry();
+				
 			}
 
 		});
@@ -280,29 +276,7 @@ public class JFrameEmailverwaltung extends JFrame {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if(textFieldId.getText().toString().equals("")) {
-					return;
-				}
-
-				if(!editClicked) {
-					setEditableNew();
-					buttonEdit.setText("Save");
-					disableButtonsExcept(buttonEdit);
-					cancel = true;
-
-				} else {
-					EmailKontaktDao.update(guiToContact());
-					buttonEdit.setText("Edit");
-					setEditablefalse();
-					updateTableModel();
-					enableButtons();
-					checkStatus();
-					cancel = false;
-
-				}
-
-				editClicked = !editClicked;
-
+				editEntry();
 			}
 
 		});
@@ -315,27 +289,8 @@ public class JFrameEmailverwaltung extends JFrame {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if(cancel) {
-					enableButtons();
-					setEditablefalse();
-					cancel = false;
-					editClicked = false;
-					newClicked = false;
-					buttonEdit.setText("Edit");
-					buttonNew.setText("Neu");
-					clear();
-
-				} else if(textFieldId.getText().toString().equals("")) {
-					return;
-
-				} else if(!cancel) {
-					EmailKontaktDao.delete(guiToContact());
-					fillFields(EmailKontaktDao.previous(guiToContact()));			
-					checkStatus();
-					updateTableModel();
-
-				}
-
+				deleteEntry();
+				
 			}
 
 		});
@@ -351,6 +306,7 @@ public class JFrameEmailverwaltung extends JFrame {
 				EmailKontakt contact = EmailKontaktDao.next(guiToContact());
 				fillFields(contact);
 				checkStatus();
+				selectInTable(guiToContact());
 
 			}
 
@@ -367,6 +323,7 @@ public class JFrameEmailverwaltung extends JFrame {
 				EmailKontakt contact = EmailKontaktDao.last();
 				fillFields(contact);
 				checkStatus();
+				selectInTable(guiToContact());
 
 			}
 
@@ -408,6 +365,43 @@ public class JFrameEmailverwaltung extends JFrame {
 		scrollPane.setBounds(520, 11, 314, 176);
 		contentPane.add(scrollPane);
 
+		popupMenu = new JPopupMenu();
+//		addPopup(tableData, popupMenu);
+		popupMenu.setBounds(0, 0, 200, 50);
+		
+		itemNew = new JMenuItem("Zeile Hinzuf\u00FCgen");
+		itemNew.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				newEntry();
+				
+			}
+		});
+		popupMenu.add(itemNew);
+		
+		itemDelete = new JMenuItem("Zeile L\u00F6schen");
+		itemDelete.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				deleteEntry();
+				
+			}
+		});
+		popupMenu.add(itemDelete);
+		
+		itemEdit = new JMenuItem("Zeile Editieren");
+		itemEdit.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				editEntry();
+				
+			}
+		});
+		popupMenu.add(itemEdit);
+		
 		tableData = new JTable(model);
 		tableData.setShowHorizontalLines(false);
 		scrollPane.setViewportView(tableData);
@@ -420,8 +414,11 @@ public class JFrameEmailverwaltung extends JFrame {
 
 			@Override
 			public void tableChanged(TableModelEvent e) {
-				EmailKontaktDao.update(tableToContact());
-				fillFields(tableToContact());
+				if(changesMade()) {
+					EmailKontaktDao.update(tableToContact());
+					fillFields(tableToContact());
+					
+				}
 
 			}
 		});
@@ -442,6 +439,9 @@ public class JFrameEmailverwaltung extends JFrame {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				int row = tableData.getSelectedRow();
+				if(row == -1) {
+					return;
+				}
 				textFieldId.setText(tableData.getModel().getValueAt(row, 0).toString());
 				textFieldFirstName.setText(tableData.getModel().getValueAt(row, 1).toString());
 				textFieldLastName.setText(tableData.getModel().getValueAt(row, 2).toString());
@@ -450,7 +450,135 @@ public class JFrameEmailverwaltung extends JFrame {
 			}
 		});
 	}
+	
+	private void selectInTable(EmailKontakt contact) {
+		for(int i = 0; i < model.getRowCount(); i++) {
+			if(model.getValueAt(i, 0).toString().equals(textFieldId.getText())) {
+				tableData.setRowSelectionInterval(i, i);
+				
+			}
+			
+		}
+		
+	}
+	
+	private void selectInTable(int id) {
+		for(int i = 0; i < model.getRowCount(); i++) {
+			if(Integer.parseInt(model.getValueAt(i, 0).toString()) == id) {
+				tableData.setRowSelectionInterval(i, i);
+				
+			}
+			
+		}
+		
+	}
 
+
+	private void editEntry() {
+		if(textFieldId.getText().toString().equals("")) {
+			return;
+		}
+
+		if(!editClicked) {
+			setEditableNew();
+			buttonEdit.setText("Save");
+			disableButtonsExcept(buttonEdit);
+			cancel = true;
+
+		} else {
+			EmailKontaktDao.update(guiToContact());
+			buttonEdit.setText("Edit");
+			setEditablefalse();
+			updateTableModel();
+			enableButtons();
+			checkStatus();
+			cancel = false;
+
+		}
+
+		editClicked = !editClicked;
+
+	}
+	
+	private void deleteEntry() {
+		if(cancel) {
+			enableButtons();
+			setEditablefalse();
+			cancel = false;
+			editClicked = false;
+			newClicked = false;
+			buttonEdit.setText("Edit");
+			buttonNew.setText("Neu");
+			clear();
+
+		} else if(textFieldId.getText().toString().equals("")) {
+			return;
+
+		} else if(!cancel) {
+			EmailKontaktDao.delete(guiToContact());
+			fillFields(EmailKontaktDao.previous(guiToContact()));			
+			updateTableModel();
+			selectInTable(guiToContact());
+			checkStatus();
+
+		}
+
+	}
+
+	private void newEntry() {
+		if(!newClicked) {
+			clear();
+			setEditableNew();
+			buttonNew.setText("Save");
+			disableButtonsExcept(buttonNew);
+			buttonNew.setEnabled(false);
+			cancel = true;
+
+		} else {
+			buttonNew.setEnabled(true);
+			buttonNew.setText("Neu");
+			setEditablefalse();
+			
+			EmailKontakt guiContact = guiToContact();
+			String id = String.valueOf(EmailKontaktDao.insert(guiContact));
+			int intId = Integer.parseInt(id);
+			guiContact.setId(intId);
+			textFieldId.setText(id);
+			
+			updateTableModel();
+			enableButtons();
+			fillFields(guiContact);
+			selectInTable(intId);
+			checkStatus();
+			
+			cancel = false;
+
+		}
+
+		newClicked = !newClicked;
+
+	}
+	
+	private boolean changesMade() {
+		EmailKontakt sqlContact = EmailKontaktDao.select(guiToContact().getId());
+		EmailKontakt guiContact = tableToContact();
+		
+		try {
+			if(sqlContact.getFirstName().equals(guiContact.getFirstName())
+					&& sqlContact.getName().equals(guiContact.getName()) 
+					&& sqlContact.getEmail().equals(guiContact.getEmail())) {
+				
+				return false;
+				
+			} else {
+				return true;
+				
+			}
+		} catch (NullPointerException e) {
+			return false;
+		}
+	}
+	
 	private EmailKontakt tableToContact() {
 		int row;
 		EmailKontakt contact = null;
@@ -614,6 +742,23 @@ public class JFrameEmailverwaltung extends JFrame {
 		} catch (NullPointerException e) {
 
 		}
-
+		
 	}
+//	private static void addPopup(Component component, final JPopupMenu popup) {
+//		component.addMouseListener(new MouseAdapter() {
+//			public void mousePressed(MouseEvent e) {
+//				if (e.isPopupTrigger()) {
+//					showMenu(e);
+//				}
+//			}
+//			public void mouseReleased(MouseEvent e) {
+//				if (e.isPopupTrigger()) {
+//					showMenu(e);
+//				}
+//			}
+//			private void showMenu(MouseEvent e) {
+//				popup.show(e.getComponent(), e.getX(), e.getY());
+//			}
+//		});
+//	}
 }

@@ -1,11 +1,13 @@
 package emailverwaltung;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
 
@@ -13,6 +15,7 @@ public class EmailKontaktDao {
 
 	private final static String DBNAME = "Email";
 	private final static String PATH = "jdbc:sqlite:" +System.getenv("APPDATA") +"\\JavaExamples\\" +DBNAME +".db";
+	private static final String FOLDERPATH = System.getenv("APPDATA") +"\\JavaExamples\\";
 	//	private final static String PATH = "jdbc:sqlite:H:\\" +DBNAME +".db";
 	private static String defaultConnType = "SQLite";
 	private static boolean isConnected = false;
@@ -95,15 +98,44 @@ public class EmailKontaktDao {
 
 	}
 	
+	public static int getNextId() {
+        try {
+            Statement s = getConn(defaultConnType).createStatement();
+
+            String sql = "SELECT MIN(t1.ID + 1) AS nextID "
+                    + "FROM " + DBNAME + " t1 "
+                    + "LEFT JOIN " + DBNAME + " t2 ON t1.ID + 1 = t2.ID "
+                    + "WHERE t2.ID IS NULL";
+
+            ResultSet rs = s.executeQuery(sql);
+            int id = rs.getInt("nextID");
+
+            if(id == 0) {
+            	id = 1;
+            }
+            
+            s.close();
+            return id;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+
+        }
+
+        return 1;
+
+    }
+	
 	public static int insert(EmailKontakt contact) {
 		Connection conn = getConn(defaultConnType);
-		String sql = "INSERT INTO " +DBNAME +" (vorname, nachname, email) VALUES(?, ?, ?)";
+		String sql = "INSERT INTO " +DBNAME +" (id, vorname, nachname, email) VALUES(?, ?, ?, ?)";
 
 		try {
 			PreparedStatement s = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-			s.setString(1, contact.getFirstName());
-			s.setString(2, contact.getName());
-			s.setString(3, contact.getEmail());
+			s.setInt(1, getNextId());
+			s.setString(2, contact.getFirstName());
+			s.setString(3, contact.getName());
+			s.setString(4, contact.getEmail());
 			s.executeUpdate();
 
 			System.out.println("[MSG] [DAO] Added row in " +defaultConnType);
@@ -233,7 +265,7 @@ public class EmailKontaktDao {
 			cont.setId(rs.getInt("id"));
 
 		} catch (SQLException e) {
-			e.printStackTrace();
+			System.out.println("[ERR] [DAO] " +e.getMessage());
 
 		} finally {
 			try {
@@ -406,6 +438,84 @@ public class EmailKontaktDao {
 		return count;
 
 	}
+	
+	public static Object[][] select(String id, String firstName, String lastName, String email) {
+		Connection conn = getConn(defaultConnType);
+		String sql = "SELECT * FROM " +DBNAME +" WHERE ID=? OR VORNAME=? OR NACHNAME=? OR EMAIL=?";
+		Object[][] newData = null;
+		ArrayList<Object> objList = new ArrayList<Object>();
+		
+		try {
+			PreparedStatement ps = conn.prepareStatement(sql);
+			
+			if(id.equals("")) {
+				ps.setString(1, "*");
+				
+			} else {
+				ps.setString(1, id);
+				
+			}
+			
+			if(firstName.equals("")) {
+				ps.setString(2, "*");
+				
+			} else {
+				ps.setString(2, firstName);
+				
+			}
+			
+			if(id.equals("")) {
+				ps.setString(3, "*");
+				
+			} else {
+				ps.setString(3, lastName);
+				
+			}
+			
+			if(id.equals("")) {
+				ps.setString(4, "*");
+				
+			} else {
+				ps.setString(4, email);
+				
+			}
+
+			ResultSet rs = ps.executeQuery();
+			if(defaultConnType.equals("AS400")) {
+				rs.next();
+			}
+			
+			while(rs.next()) {
+				Object[] obj = {rs.getInt("id"), rs.getString("vorname"), rs.getString("nachname"), rs.getString("email")};
+				objList.add(obj);
+			
+			}
+			
+			newData = new Object[objList.size()][4];
+			
+			for(int i = 0; i < newData.length; i++) {
+				newData[i] = (Object[]) objList.get(i);
+				
+			}
+			
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+
+		} finally {
+			try {
+				conn.close();
+
+			} catch (SQLException e) {
+				e.printStackTrace();
+
+			}
+
+		}
+
+		return newData;
+
+	}
 
 	public static EmailKontakt select(int id) {
 		Connection conn = getConn(defaultConnType);
@@ -424,7 +534,10 @@ public class EmailKontaktDao {
 			contact.setId(rs.getInt("id"));
 
 		} catch (SQLException e) {
-			JOptionPane.showMessageDialog(null, "Die ID " +id +" ist nicht vergeben.");
+			if(id > 0) {
+				JOptionPane.showMessageDialog(null, "Die ID " +id +" ist nicht vergeben.");
+				
+			}
 
 		} finally {
 			try {
@@ -468,13 +581,18 @@ public class EmailKontaktDao {
 		} else {
 
 			try {
+				File folder = new File(FOLDERPATH);
+				if(!folder.exists()) {
+					folder.mkdir();
+				}
+				
 				Class.forName("org.sqlite.JDBC");
 				conn = DriverManager.getConnection(PATH);
 				s = conn.createStatement();
 
 				String table = "CREATE TABLE IF NOT EXISTS " +DBNAME
 						+ "("
-						+ "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+						+ "id INTEGER PRIMARY KEY NOT NULL,"
 						+ "vorname VARCHAR(30) NOT NULL,"
 						+ "nachname VARCHAR(30) NOT NULL,"
 						+ "email VARCHAR(50) NOT NULL"

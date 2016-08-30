@@ -8,7 +8,12 @@ public class TableModel extends AbstractTableModel {
 	 */
 	private static final long serialVersionUID = 1L;
 	private String[] columnNames = EmailKontaktDao.getColumnNames();
-    private Object[][] data = EmailKontaktDao.getTableData();
+	private Object[][] data = null;
+	
+	public TableModel(Object[][] data) {
+		this.data = data;
+		
+	}
     
     public int getColumnCount() {
         return columnNames.length;
@@ -23,7 +28,15 @@ public class TableModel extends AbstractTableModel {
     }
 
     public Object getValueAt(int row, int col) {
-        return data[row][col];
+    	Object obj = null;
+		try {
+			obj = data[row][col];
+			
+		} catch (ArrayIndexOutOfBoundsException e) {
+			
+		}
+		
+        return obj;
     }
 
     public void setValueAt(Object value, int row, int col) {
@@ -31,8 +44,8 @@ public class TableModel extends AbstractTableModel {
     	fireTableCellUpdated(row, col);
     }
     
-    public void addRow(Object[] data) {
-    	addRow(data);
+    public void setData(Object[][] data) {
+    	this.data = data;
     	fireTableDataChanged();
     	
     }
