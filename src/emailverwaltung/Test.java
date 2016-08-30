@@ -26,6 +26,7 @@ public class Test {
 		
 		System.out.println(EmailKontaktDao.getDataCount());
 		System.out.println("Done!");
+		System.out.println("Super done!");
 
 
 	}
