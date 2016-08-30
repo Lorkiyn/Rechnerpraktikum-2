@@ -21,6 +21,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 
 public class JFrameEmailverwaltung extends JFrame {
 
@@ -109,21 +111,21 @@ public class JFrameEmailverwaltung extends JFrame {
 			@Override
 			public void keyPressed(KeyEvent arg0) {
 				checkFields();
-				
+
 			}
 
 			@Override
 			public void keyReleased(KeyEvent arg0) {
 				checkFields();
-				
+
 			}
 
 			@Override
 			public void keyTyped(KeyEvent arg0) {
 				checkFields();
-				
+
 			}
-			
+
 		});
 		textFieldFirstName.setBounds(120, 42, 390, 20);
 		textFieldFirstName.setEditable(false);
@@ -136,21 +138,21 @@ public class JFrameEmailverwaltung extends JFrame {
 			@Override
 			public void keyPressed(KeyEvent arg0) {
 				checkFields();
-				
+
 			}
 
 			@Override
 			public void keyReleased(KeyEvent arg0) {
 				checkFields();
-				
+
 			}
 
 			@Override
 			public void keyTyped(KeyEvent arg0) {
 				checkFields();
-				
+
 			}
-			
+
 		});
 		textFieldLastName.setBounds(120, 73, 390, 20);
 		textFieldLastName.setEditable(false);
@@ -163,21 +165,21 @@ public class JFrameEmailverwaltung extends JFrame {
 			@Override
 			public void keyPressed(KeyEvent arg0) {
 				checkFields();
-				
+
 			}
 
 			@Override
 			public void keyReleased(KeyEvent arg0) {
 				checkFields();
-				
+
 			}
 
 			@Override
 			public void keyTyped(KeyEvent arg0) {
 				checkFields();
-				
+
 			}
-			
+
 		});
 		textFieldEmail.setBounds(120, 104, 390, 20);
 		textFieldEmail.setEditable(false);
@@ -414,6 +416,15 @@ public class JFrameEmailverwaltung extends JFrame {
 		tableData.getColumnModel().getColumn(1).setPreferredWidth(40);
 		tableData.getColumnModel().getColumn(2).setPreferredWidth(40);
 		tableData.getColumnModel().getColumn(3).setPreferredWidth(100);
+		model.addTableModelListener(new TableModelListener() {
+
+			@Override
+			public void tableChanged(TableModelEvent e) {
+				EmailKontaktDao.update(tableToContact());
+				fillFields(tableToContact());
+
+			}
+		});
 		tableData.addMouseListener(new MouseListener() {
 
 			@Override
@@ -435,38 +446,11 @@ public class JFrameEmailverwaltung extends JFrame {
 				textFieldFirstName.setText(tableData.getModel().getValueAt(row, 1).toString());
 				textFieldLastName.setText(tableData.getModel().getValueAt(row, 2).toString());
 				textFieldEmail.setText(tableData.getModel().getValueAt(row, 3).toString());
-				
-				if(changesMade()) {
-					EmailKontaktDao.update(tableToContact());
-					
-				}
 
 			}
 		});
 	}
-	
-	private boolean changesMade() {
-		EmailKontakt guiContact = guiToContact();
-		EmailKontakt tableContact = tableToContact();
-		
-		if(guiContact.getId() != tableContact.getId()) {
-			return true;
-		
-		} if(!guiContact.getFirstName().equals(tableContact.getFirstName())) {
-			return true;
-			
-		} if(!guiContact.getName().equals(tableContact.getName())) {
-			return true;
-			
-		} if(!guiContact.getEmail().equals(tableContact.getEmail())) {
-			return true;
-			
-		}
-		
-		return false;
-		
-	}
-	
+
 	private EmailKontakt tableToContact() {
 		int row;
 		EmailKontakt contact = null;
@@ -478,35 +462,35 @@ public class JFrameEmailverwaltung extends JFrame {
 			String email = tableData.getModel().getValueAt(row, 3).toString();
 			contact = new EmailKontakt(firstName, lastName, email);
 			contact.setId(id);
-			
+
 		} catch (NullPointerException e) {
 			System.out.println("[ERR] [JFR] No row selected");
-			
+
 		}
-		
+
 		return contact;
-		
+
 	}
-	
+
 	private void checkFields() {
 		if(textFieldFirstName.getText().length() > 0
 				&& textFieldLastName.getText().length() > 0
 				&& textFieldEmail.getText().length() > 0) {
-			
+
 			if(newClicked) {
 				buttonNew.setEnabled(true);
-				
+
 			} else if (editClicked){
 				buttonEdit.setEnabled(true);
-				
+
 			}
-			
+
 		} else {
 			buttonNew.setEnabled(false);
 			buttonEdit.setEnabled(false);
-			
+
 		}
-		
+
 	}
 
 	private void updateTableModel() {

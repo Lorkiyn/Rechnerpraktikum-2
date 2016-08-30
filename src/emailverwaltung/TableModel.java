@@ -43,18 +43,13 @@ public class TableModel extends AbstractTableModel {
     	
     }
     
-    /*
-     * Don't need to implement this method unless your table's
-     * editable.
-     */
-//    public boolean isCellEditable(int row, int col) {
-//        //Note that the data/cell address is constant,
-//        //no matter where the cell appears onscreen.
-//        if (col < 2) {
-//            return false;
-//        } else {
-//            return true;
-//        }
-//    }
-
+    public boolean isCellEditable(int row, int col) {
+        if (col == 0) {
+            return false;
+            
+        } else {
+            return true;
+            
+        }
+    }
 }
