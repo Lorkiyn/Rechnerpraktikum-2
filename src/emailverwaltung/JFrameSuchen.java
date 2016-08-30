@@ -11,6 +11,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EmptyBorder;
@@ -46,16 +47,8 @@ public class JFrameSuchen extends JFrame {
 			}
 		});
 	}
-
-	public static EmailKontakt search() {
-		JFrameSuchen frame = new JFrameSuchen();
-		frame.setVisible(true);
-		
-		return searchContact;
-	}
 	
-	
-	private JFrameSuchen() {
+	public JFrameSuchen() {
 		setResizable(false);
 		setTitle("Eintrag Suchen");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -73,7 +66,7 @@ public class JFrameSuchen extends JFrame {
 		}
 		
 		JPanel panel = new JPanel();
-		panel.setBorder(new TitledBorder(null, "JPanel title", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		panel.setBorder(new TitledBorder(null, "Navigation", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		panel.setBounds(4, 8, 200, 167);
 		contentPane.add(panel);
 		panel.setLayout(null);
@@ -120,19 +113,39 @@ public class JFrameSuchen extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				model.setData(EmailKontaktDao.select(textFieldId.getText(), textFieldFirstName.getText(), textFieldLastName.getText(), textFieldEmail.getText()));
-				
+				model.setEditable(false);
 			}
 		});
 		buttonSearch.setBounds(10, 136, 180, 20);
 		panel.add(buttonSearch);
 		
 		JPanel panel_1 = new JPanel();
-		panel_1.setBorder(new TitledBorder(null, "JPanel title", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		panel_1.setBorder(new TitledBorder(null, "Ausgabe", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		panel_1.setBounds(214, 8, 270, 167);
 		contentPane.add(panel_1);
 		panel_1.setLayout(null);
 		
 		JButton buttonGo = new JButton("Einf\u00FCgen");
+		buttonGo.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int row = table.getSelectedRow();
+				if(row == -1) {
+					return;
+				}
+				String id = table.getModel().getValueAt(row, 0).toString();
+				String firstName = table.getModel().getValueAt(row, 1).toString();
+				String lastName = table.getModel().getValueAt(row, 2).toString();
+				String email = table.getModel().getValueAt(row, 3).toString();
+				searchContact = new EmailKontakt(firstName, lastName, email);
+				searchContact.setId(Integer.parseInt(id));
+				
+				JFrameEmailverwaltung.fillFields(searchContact);
+				dispose();
+				
+			}
+		});
 		buttonGo.setBounds(10, 136, 250, 20);
 		panel_1.add(buttonGo);
 		
@@ -141,6 +154,8 @@ public class JFrameSuchen extends JFrame {
 		panel_1.add(scrollPane);
 		
 		table = new JTable(model);
+		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		table.setShowHorizontalLines(false);
 		table.getColumnModel().getColumn(0).setPreferredWidth(0);
 		table.getColumnModel().getColumn(1).setPreferredWidth(55);
 		table.getColumnModel().getColumn(2).setPreferredWidth(55);

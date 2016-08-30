@@ -1,13 +1,11 @@
 package emailverwaltung;
 
-import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
@@ -16,12 +14,12 @@ import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EmptyBorder;
@@ -206,13 +204,8 @@ public class JFrameEmailverwaltung extends JFrame {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String name = JOptionPane.showInputDialog(null, "Bitte ID eingeben.");
-				EmailKontakt contact = null;
-				try {
-					contact = EmailKontaktDao.select(Integer.parseInt(name));
-
-				} catch (NumberFormatException e1) {}
-				fillFields(contact);
+				JFrameSuchen frame = new JFrameSuchen();
+				frame.setVisible(true);
 				checkStatus(); 
 				selectInTable(guiToContact());
 
@@ -406,6 +399,7 @@ public class JFrameEmailverwaltung extends JFrame {
 		tableData.setShowHorizontalLines(false);
 		scrollPane.setViewportView(tableData);
 		tableData.setRowSelectionAllowed(true);
+		tableData.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		tableData.getColumnModel().getColumn(0).setPreferredWidth(0);
 		tableData.getColumnModel().getColumn(1).setPreferredWidth(40);
 		tableData.getColumnModel().getColumn(2).setPreferredWidth(40);
@@ -626,7 +620,7 @@ public class JFrameEmailverwaltung extends JFrame {
 
 	}
 
-	private void fillFields(EmailKontakt contact) {
+	public static void fillFields(EmailKontakt contact) {
 		try {
 			textFieldId.setText(String.valueOf(contact.getId()));
 			textFieldFirstName.setText(contact.getFirstName());

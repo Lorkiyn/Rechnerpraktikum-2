@@ -9,6 +9,7 @@ public class TableModel extends AbstractTableModel {
 	private static final long serialVersionUID = 1L;
 	private String[] columnNames = EmailKontaktDao.getColumnNames();
 	private Object[][] data = null;
+	boolean editable = true;
 	
 	public TableModel(Object[][] data) {
 		this.data = data;
@@ -56,7 +57,15 @@ public class TableModel extends AbstractTableModel {
     	
     }
     
+    public void setEditable(boolean editable) {
+    	this.editable = editable;
+    }
+    
     public boolean isCellEditable(int row, int col) {
+    	if(!editable) {
+    		return false;
+    	}
+    	
         if (col == 0) {
             return false;
             

@@ -494,8 +494,6 @@ public class EmailKontaktDao {
 
 		String sql = mainStr.toString();
 
-		System.out.println(sql);
-
 		try {
 			PreparedStatement ps = conn.prepareStatement(sql);
 
