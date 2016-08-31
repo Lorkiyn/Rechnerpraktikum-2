@@ -38,21 +38,21 @@ public class JFrameEmailverwaltung extends JFrame {
 	private static JTextField textFieldFirstName;
 	private static JTextField textFieldLastName;
 	private static JTextField textFieldEmail;
-	private JButton buttonSeach;
+	private JButton buttonSearch;
 	private JButton buttonToStart;
-	private JButton buttonBack;
+	private static JButton buttonBack;
 	private JButton buttonNew;
 	private JButton buttonEdit;
 	private JButton buttonDelete;
-	private JButton buttonNext;
+	private static JButton buttonNext;
 	private JButton buttonToEnd;
 	private int lastSelectedIndex = 0;
 	private boolean editClicked = false;
-	private boolean newClicked = false;
-	private JTable tableData;
+	private static boolean newClicked = false;
+	private static JTable tableData;
 	private JScrollPane scrollPane;
 	private JComboBox<Object> comboBoxDatabase;
-	private TableModel model = new TableModel(EmailKontaktDao.getTableData());
+	private static TableModel model = new TableModel(EmailKontaktDao.getTableData());
 	private boolean cancel = false; 
 	private JPopupMenu popupMenu;
 	private JMenuItem itemNew;
@@ -89,7 +89,7 @@ public class JFrameEmailverwaltung extends JFrame {
 		contentPane.setLayout(null);
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-			
+
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
 				| UnsupportedLookAndFeelException e2) {
 			e2.printStackTrace();
@@ -198,21 +198,20 @@ public class JFrameEmailverwaltung extends JFrame {
 		textFieldEmail.setColumns(10);
 		contentPane.add(textFieldEmail);
 
-		buttonSeach = new JButton("Suchen");
-		buttonSeach.setBounds(250, 166, 130, 20);
-		buttonSeach.addActionListener(new ActionListener() {
+		buttonSearch = new JButton("Suchen");
+		buttonSearch.setBounds(250, 166, 130, 20);
+		buttonSearch.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JFrameSuchen frame = new JFrameSuchen();
 				frame.setVisible(true);
 				checkStatus(); 
-				selectInTable(guiToContact());
 
 			}
 
 		});
-		contentPane.add(buttonSeach);
+		contentPane.add(buttonSearch);
 
 		buttonToStart = new JButton("|<");
 		buttonToStart.setBounds(120, 166, 60, 20);
@@ -256,7 +255,7 @@ public class JFrameEmailverwaltung extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				newEntry();
-				
+
 			}
 
 		});
@@ -283,7 +282,7 @@ public class JFrameEmailverwaltung extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				deleteEntry();
-				
+
 			}
 
 		});
@@ -359,42 +358,42 @@ public class JFrameEmailverwaltung extends JFrame {
 		contentPane.add(scrollPane);
 
 		popupMenu = new JPopupMenu();
-//		addPopup(tableData, popupMenu);
+		//		addPopup(tableData, popupMenu);
 		popupMenu.setBounds(0, 0, 200, 50);
-		
+
 		itemNew = new JMenuItem("Zeile Hinzuf\u00FCgen");
 		itemNew.addActionListener(new ActionListener() {
-			
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				newEntry();
-				
+
 			}
 		});
 		popupMenu.add(itemNew);
-		
+
 		itemDelete = new JMenuItem("Zeile L\u00F6schen");
 		itemDelete.addActionListener(new ActionListener() {
-			
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				deleteEntry();
-				
+
 			}
 		});
 		popupMenu.add(itemDelete);
-		
+
 		itemEdit = new JMenuItem("Zeile Editieren");
 		itemEdit.addActionListener(new ActionListener() {
-			
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				editEntry();
-				
+
 			}
 		});
 		popupMenu.add(itemEdit);
-		
+
 		tableData = new JTable(model);
 		tableData.setShowHorizontalLines(false);
 		scrollPane.setViewportView(tableData);
@@ -411,7 +410,7 @@ public class JFrameEmailverwaltung extends JFrame {
 				if(changesMade()) {
 					EmailKontaktDao.update(tableToContact());
 					fillFields(tableToContact());
-					
+
 				}
 
 			}
@@ -444,27 +443,28 @@ public class JFrameEmailverwaltung extends JFrame {
 			}
 		});
 	}
-	
+
 	private void selectInTable(EmailKontakt contact) {
 		for(int i = 0; i < model.getRowCount(); i++) {
 			if(model.getValueAt(i, 0).toString().equals(textFieldId.getText())) {
 				tableData.setRowSelectionInterval(i, i);
-				
+				checkStatus();
 			}
-			
+
 		}
-		
+
 	}
-	
-	private void selectInTable(int id) {
+
+	public static void selectInTable(int id) {
 		for(int i = 0; i < model.getRowCount(); i++) {
 			if(Integer.parseInt(model.getValueAt(i, 0).toString()) == id) {
 				tableData.setRowSelectionInterval(i, i);
-				
+				checkStatus();
+
 			}
-			
+
 		}
-		
+
 	}
 
 
@@ -493,7 +493,7 @@ public class JFrameEmailverwaltung extends JFrame {
 		editClicked = !editClicked;
 
 	}
-	
+
 	private void deleteEntry() {
 		if(cancel) {
 			enableButtons();
@@ -532,19 +532,19 @@ public class JFrameEmailverwaltung extends JFrame {
 			buttonNew.setEnabled(true);
 			buttonNew.setText("Neu");
 			setEditablefalse();
-			
+
 			EmailKontakt guiContact = guiToContact();
 			String id = String.valueOf(EmailKontaktDao.insert(guiContact));
 			int intId = Integer.parseInt(id);
 			guiContact.setId(intId);
 			textFieldId.setText(id);
-			
+
 			updateTableModel();
 			enableButtons();
 			fillFields(guiContact);
 			selectInTable(intId);
 			checkStatus();
-			
+
 			cancel = false;
 
 		}
@@ -552,27 +552,27 @@ public class JFrameEmailverwaltung extends JFrame {
 		newClicked = !newClicked;
 
 	}
-	
+
 	private boolean changesMade() {
 		EmailKontakt sqlContact = EmailKontaktDao.select(guiToContact().getId());
 		EmailKontakt guiContact = tableToContact();
-		
+
 		try {
 			if(sqlContact.getFirstName().equals(guiContact.getFirstName())
 					&& sqlContact.getName().equals(guiContact.getName()) 
 					&& sqlContact.getEmail().equals(guiContact.getEmail())) {
-				
+
 				return false;
-				
+
 			} else {
 				return true;
-				
+
 			}
 		} catch (NullPointerException e) {
 			return false;
 		}
 	}
-	
+
 	private EmailKontakt tableToContact() {
 		int row;
 		EmailKontakt contact = null;
@@ -594,7 +594,7 @@ public class JFrameEmailverwaltung extends JFrame {
 
 	}
 
-	private void checkFields() {
+	protected void checkFields() {
 		if(textFieldFirstName.getText().length() > 0
 				&& textFieldLastName.getText().length() > 0
 				&& textFieldEmail.getText().length() > 0) {
@@ -653,7 +653,7 @@ public class JFrameEmailverwaltung extends JFrame {
 		buttonEdit.setEnabled(true);
 		buttonNew.setEnabled(true);
 		buttonNext.setEnabled(true);
-		buttonSeach.setEnabled(true);
+		buttonSearch.setEnabled(true);
 		buttonToEnd.setEnabled(true);
 		buttonToStart.setEnabled(true);
 		comboBoxDatabase.setEnabled(true);
@@ -665,7 +665,7 @@ public class JFrameEmailverwaltung extends JFrame {
 		buttonEdit.setEnabled(false);
 		buttonNew.setEnabled(false);
 		buttonNext.setEnabled(false);
-		buttonSeach.setEnabled(false);
+		buttonSearch.setEnabled(false);
 		buttonToEnd.setEnabled(false);
 		buttonToStart.setEnabled(false);
 		comboBoxDatabase.setEnabled(false);
@@ -703,7 +703,7 @@ public class JFrameEmailverwaltung extends JFrame {
 
 	}
 
-	private void checkStatus() {
+	private static void checkStatus() {
 		try {
 			int min = EmailKontaktDao.first().getId();
 			int max = EmailKontaktDao.last().getId();
@@ -736,23 +736,23 @@ public class JFrameEmailverwaltung extends JFrame {
 		} catch (NullPointerException e) {
 
 		}
-		
+
 	}
-//	private static void addPopup(Component component, final JPopupMenu popup) {
-//		component.addMouseListener(new MouseAdapter() {
-//			public void mousePressed(MouseEvent e) {
-//				if (e.isPopupTrigger()) {
-//					showMenu(e);
-//				}
-//			}
-//			public void mouseReleased(MouseEvent e) {
-//				if (e.isPopupTrigger()) {
-//					showMenu(e);
-//				}
-//			}
-//			private void showMenu(MouseEvent e) {
-//				popup.show(e.getComponent(), e.getX(), e.getY());
-//			}
-//		});
-//	}
+	//	private static void addPopup(Component component, final JPopupMenu popup) {
+	//		component.addMouseListener(new MouseAdapter() {
+	//			public void mousePressed(MouseEvent e) {
+	//				if (e.isPopupTrigger()) {
+	//					showMenu(e);
+	//				}
+	//			}
+	//			public void mouseReleased(MouseEvent e) {
+	//				if (e.isPopupTrigger()) {
+	//					showMenu(e);
+	//				}
+	//			}
+	//			private void showMenu(MouseEvent e) {
+	//				popup.show(e.getComponent(), e.getX(), e.getY());
+	//			}
+	//		});
+	//	}
 }

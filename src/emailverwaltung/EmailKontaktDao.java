@@ -455,7 +455,7 @@ public class EmailKontaktDao {
 		ArrayList<Object> objList = new ArrayList<Object>();
 
 		if(!id.equals("")) {
-			str.append("ID=?");
+			str.append("ID LIKE '%" +id +"%'");
 			bId = true;
 			arrlist.add(id);
 
@@ -464,7 +464,7 @@ public class EmailKontaktDao {
 				str.append(" AND ");
 
 			}
-			str.append("vorname=?");
+			str.append("vorname LIKE '%" +firstName +"%'");
 			bFirstName = true;
 			arrlist.add(firstName);
 
@@ -473,7 +473,7 @@ public class EmailKontaktDao {
 				str.append(" AND ");
 
 			}
-			str.append("nachname=?");
+			str.append("nachname LIKE '%" +lastName +"%'");
 			bLastName = true;
 			arrlist.add(lastName);
 
@@ -482,7 +482,7 @@ public class EmailKontaktDao {
 				str.append(" AND ");
 
 			}
-			str.append("email=?");
+			str.append("email LIKE '%" +email +"%'");
 			bEmail = true;
 			arrlist.add(email);
 
@@ -493,15 +493,11 @@ public class EmailKontaktDao {
 		}
 
 		String sql = mainStr.toString();
-
+		
 		try {
-			PreparedStatement ps = conn.prepareStatement(sql);
+			Statement ps = conn.createStatement();
 
-			for(int i = 0; i < arrlist.size(); i++) {
-				ps.setString((i+1), arrlist.get(i));
-			}
-
-			ResultSet rs = ps.executeQuery();
+			ResultSet rs = ps.executeQuery(sql);
 			if(defaultConnType.equals("AS400")) {
 				rs.next();
 			}
