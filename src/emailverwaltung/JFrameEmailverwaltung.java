@@ -23,8 +23,6 @@ import javax.swing.ListSelectionModel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
@@ -401,19 +399,24 @@ public class JFrameEmailverwaltung extends JFrame {
 			
 			@Override
 			public void keyTyped(KeyEvent e) {
-				// TODO Auto-generated method stub
+				int c = e.getKeyCode();
+				if(c == 38 || c == 40) {
+					updateGui();
+				}
 				
 			}
 			
 			@Override
 			public void keyReleased(KeyEvent e) {
-				// TODO Auto-generated method stub
+				int c = e.getKeyCode();
+				if(c == 38 || c == 40) {
+					updateGui();
+				}
 				
 			}
 			
 			@Override
 			public void keyPressed(KeyEvent e) {
-				if(e.getKeyCode() == 37 ||)
 				
 			}
 		});
@@ -453,17 +456,21 @@ public class JFrameEmailverwaltung extends JFrame {
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				int row = tableData.getSelectedRow();
-				if(row == -1) {
-					return;
-				}
-				textFieldId.setText(tableData.getModel().getValueAt(row, 0).toString());
-				textFieldFirstName.setText(tableData.getModel().getValueAt(row, 1).toString());
-				textFieldLastName.setText(tableData.getModel().getValueAt(row, 2).toString());
-				textFieldEmail.setText(tableData.getModel().getValueAt(row, 3).toString());
+				updateGui();
 
 			}
 		});
+	}
+	
+	private void updateGui() {
+		int row = tableData.getSelectedRow();
+		if(row == -1) {
+			return;
+		}
+		textFieldId.setText(tableData.getModel().getValueAt(row, 0).toString());
+		textFieldFirstName.setText(tableData.getModel().getValueAt(row, 1).toString());
+		textFieldLastName.setText(tableData.getModel().getValueAt(row, 2).toString());
+		textFieldEmail.setText(tableData.getModel().getValueAt(row, 3).toString());
 	}
 
 	private void selectInTable(EmailKontakt contact) {
