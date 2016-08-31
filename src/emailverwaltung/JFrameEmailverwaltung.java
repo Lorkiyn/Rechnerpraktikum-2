@@ -23,6 +23,8 @@ import javax.swing.ListSelectionModel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
@@ -395,6 +397,26 @@ public class JFrameEmailverwaltung extends JFrame {
 		popupMenu.add(itemEdit);
 
 		tableData = new JTable(model);
+		tableData.addKeyListener(new KeyListener() {
+			
+			@Override
+			public void keyTyped(KeyEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void keyReleased(KeyEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if(e.getKeyCode() == 37 ||)
+				
+			}
+		});
 		tableData.setShowHorizontalLines(false);
 		scrollPane.setViewportView(tableData);
 		tableData.setRowSelectionAllowed(true);
