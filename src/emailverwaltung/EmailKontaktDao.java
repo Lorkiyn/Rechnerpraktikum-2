@@ -613,7 +613,8 @@ public class EmailKontaktDao {
 						+ "id INTEGER PRIMARY KEY NOT NULL,"
 						+ "vorname VARCHAR(30) NOT NULL,"
 						+ "nachname VARCHAR(30) NOT NULL,"
-						+ "email VARCHAR(50) NOT NULL"
+						+ "email VARCHAR(50) NOT NULL,"
+						+ "changed DATETIME"
 						+ ")";
 
 				s.executeUpdate(table);

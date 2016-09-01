@@ -4,12 +4,14 @@ import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -58,6 +60,7 @@ public class JFrameEmailverwaltung extends JFrame {
 	private JMenuItem itemNew;
 	private JMenuItem itemEdit;
 	private JMenuItem itemDelete;
+	private JCheckBox checkboxShowDeleted;
 
 	/**
 	 * Launch the application.
@@ -68,6 +71,14 @@ public class JFrameEmailverwaltung extends JFrame {
 				try {			
 					JFrameEmailverwaltung frame = new JFrameEmailverwaltung();
 					frame.setVisible(true);
+					frame.addKeyListener(new KeyAdapter() {
+
+						@Override
+						public void keyPressed(KeyEvent e) {
+							System.out.println("dawdaw");
+						}
+
+					});
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -354,7 +365,7 @@ public class JFrameEmailverwaltung extends JFrame {
 
 		scrollPane = new JScrollPane();
 		scrollPane.setEnabled(false);
-		scrollPane.setBounds(520, 11, 314, 176);
+		scrollPane.setBounds(520, 11, 314, 144);
 		contentPane.add(scrollPane);
 
 		popupMenu = new JPopupMenu();
@@ -396,34 +407,32 @@ public class JFrameEmailverwaltung extends JFrame {
 
 		tableData = new JTable(model);
 		tableData.addKeyListener(new KeyListener() {
-			
+
 			@Override
 			public void keyTyped(KeyEvent e) {
-				int c = e.getKeyCode();
-				if(c == 38 || c == 40) {
-					updateGui();
-				}
-				
+
 			}
-			
+
 			@Override
 			public void keyReleased(KeyEvent e) {
 				int c = e.getKeyCode();
 				if(c == 38 || c == 40) {
 					updateGui();
 				}
-				
 			}
-			
+
 			@Override
 			public void keyPressed(KeyEvent e) {
-				
 			}
 		});
 		tableData.setShowHorizontalLines(false);
 		scrollPane.setViewportView(tableData);
 		tableData.setRowSelectionAllowed(true);
 		tableData.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+		checkboxShowDeleted = new JCheckBox("Zeige gel\u00F6schte Datens\u00E4tze");
+		checkboxShowDeleted.setBounds(516, 162, 318, 26);
+		contentPane.add(checkboxShowDeleted);
 		tableData.getColumnModel().getColumn(0).setPreferredWidth(0);
 		tableData.getColumnModel().getColumn(1).setPreferredWidth(40);
 		tableData.getColumnModel().getColumn(2).setPreferredWidth(40);
@@ -461,7 +470,7 @@ public class JFrameEmailverwaltung extends JFrame {
 			}
 		});
 	}
-	
+
 	private void updateGui() {
 		int row = tableData.getSelectedRow();
 		if(row == -1) {
@@ -767,21 +776,4 @@ public class JFrameEmailverwaltung extends JFrame {
 		}
 
 	}
-	//	private static void addPopup(Component component, final JPopupMenu popup) {
-	//		component.addMouseListener(new MouseAdapter() {
-	//			public void mousePressed(MouseEvent e) {
-	//				if (e.isPopupTrigger()) {
-	//					showMenu(e);
-	//				}
-	//			}
-	//			public void mouseReleased(MouseEvent e) {
-	//				if (e.isPopupTrigger()) {
-	//					showMenu(e);
-	//				}
-	//			}
-	//			private void showMenu(MouseEvent e) {
-	//				popup.show(e.getComponent(), e.getX(), e.getY());
-	//			}
-	//		});
-	//	}
 }

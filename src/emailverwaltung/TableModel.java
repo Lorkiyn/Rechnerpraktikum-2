@@ -10,10 +10,10 @@ public class TableModel extends AbstractTableModel {
 	private String[] columnNames = EmailKontaktDao.getColumnNames();
 	private Object[][] data = null;
 	boolean editable = true;
+	boolean showDeleted = false;
 	
 	public TableModel(Object[][] data) {
 		this.data = data;
-		
 	}
     
     public int getColumnCount() {
